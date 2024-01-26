@@ -22,6 +22,12 @@ class _PageScreenState extends ConsumerState<PageScreen> {
   final _messageStreamController = StreamController.broadcast();
   Stream get message => _messageStreamController.stream;
 
+  String bleState = "";
+
+  int modeNum = 0; // 0~5
+  int leftWeight = 0; // 0~50
+  int rightWeight = 0; // 0~50
+
   List<int> writeData = [];
   List<int> readData = [];
 
@@ -53,41 +59,114 @@ class _PageScreenState extends ConsumerState<PageScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              "보낸 데이터",
-              style: TextStyle(
-                fontSize: 24.0,
-              ),
-            ),
-            Text(
-              writeData
-                  .map(
-                      (int value) => '${value.toRadixString(16).toUpperCase()}')
-                  .join(', '),
-              style: const TextStyle(
-                fontSize: 28.0,
-                fontWeight: FontWeight.w600,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Column(
+                  children: [
+                    const Text(
+                      "보낸 데이터",
+                      style: TextStyle(
+                        fontSize: 24.0,
+                      ),
+                    ),
+                    Text(
+                      writeData
+                          .map((int value) =>
+                              '${value.toRadixString(16).toUpperCase()}')
+                          .join(', '),
+                      style: const TextStyle(
+                        fontSize: 28.0,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    const Text(
+                      "받은 데이터",
+                      style: TextStyle(fontSize: 24.0),
+                    ),
+                    Text(
+                      readData
+                          .map((int value) =>
+                              '${value.toRadixString(16).toUpperCase()}')
+                          .join(', '),
+                      style: const TextStyle(
+                        fontSize: 28.0,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 32.0),
-            const Text(
-              "받은 데이터",
-              style: TextStyle(fontSize: 24.0),
-            ),
-            Text(
-              readData
-                  .map(
-                      (int value) => '${value.toRadixString(16).toUpperCase()}')
-                  .join(', '),
-              style: const TextStyle(
-                fontSize: 28.0,
-                fontWeight: FontWeight.w600,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("모드(0~5) : "),
+                Container(
+                  width: 120,
+                  height: 45,
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        modeNum = int.parse(value);
+                      });
+                      print(modeNum);
+                    },
+                  ),
+                ),
+                Text("왼쪽 무게 (0~50) : "),
+                Container(
+                  width: 120,
+                  height: 45,
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        leftWeight = int.parse(value);
+                      });
+                    },
+                  ),
+                ),
+                Text("오른쪽 무게 (0~50) : "),
+                Container(
+                  width: 120,
+                  height: 45,
+                  child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        rightWeight = int.parse(value);
+                      });
+                    },
+                  ),
+                ),
+                // TextField(),
+                // TextField(),
+              ],
             ),
             const SizedBox(height: 32.0),
-            connectBle(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                startBle(),
+                const SizedBox(width: 16.0),
+                endBle(),
+              ],
+            ),
             const SizedBox(height: 16.0),
-            sendBle(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                connectBle(),
+                const SizedBox(width: 16.0),
+                sendDataBle(),
+              ],
+            ),
           ],
         ),
       ),
@@ -110,8 +189,8 @@ class _PageScreenState extends ConsumerState<PageScreen> {
             FlutterBluePlus.scanResults.listen((results) async {
               if (results.isNotEmpty) {
                 ScanResult r = results.last;
-                print(
-                    '${r.device.remoteId}: "${r.device.platformName}" 찾았습니다!');
+                // print(
+                //     '${r.device.remoteId}: "${r.device.platformName}" 찾았습니다!');
 
                 if (r.device.platformName.contains("RN4870")) {
                   print('RN4870 기기 발견!');
@@ -132,16 +211,35 @@ class _PageScreenState extends ConsumerState<PageScreen> {
 
                   _setNotification(readCharacteristics);
 
-                  FlutterBluePlus.events.onCharacteristicReceived
-                      .listen((event) {
-                    print("onCharacteristicReceived");
-                    print(event.value);
-                  });
+                  // FlutterBluePlus.events.onCharacteristicReceived
+                  //     .listen((event) {
+                  //   print("onCharacteristicReceived");
+                  //   print(event.value);
+                  // });
 
-                  final sub = bleChar!.onValueReceived.listen((value) {
-                    print("onValueReceived");
-                    print(value);
-                  });
+                  // final sub = bleChar!.onValueReceived.listen((value) {
+                  //   print("onValueReceived");
+                  //   print(value);
+                  // });
+
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return Column(
+                          children: [
+                            Text("연결되었습니다.",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                )),
+                            ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("창 닫기")),
+                          ],
+                        );
+                      });
 
                   return;
                 }
@@ -152,6 +250,9 @@ class _PageScreenState extends ConsumerState<PageScreen> {
             FlutterBluePlus.startScan();
           }
         }, (device) {
+          setState(() {
+            bleState = "BLE 연결이 완료되었습니다.";
+          });
           if (device != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -172,7 +273,7 @@ class _PageScreenState extends ConsumerState<PageScreen> {
     );
   }
 
-  ElevatedButton sendBle() {
+  ElevatedButton startBle() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xff304fff),
@@ -183,10 +284,56 @@ class _PageScreenState extends ConsumerState<PageScreen> {
         ),
       ),
       onPressed: () async {
-        await sendSetting();
+        await startWorkout();
       },
       child: Text(
-        '기기로 데이터 송신',
+        '운동 시작',
+        style: TextStyle(
+          fontSize: 24.0,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  ElevatedButton sendDataBle() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xff304fff),
+        foregroundColor: Colors.white,
+        minimumSize: const Size(400, 120),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      onPressed: () async {
+        await sendWorkoutSetting();
+      },
+      child: Text(
+        '모드, 무게 전송',
+        style: TextStyle(
+          fontSize: 24.0,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  ElevatedButton endBle() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xff304fff),
+        foregroundColor: Colors.white,
+        minimumSize: const Size(400, 120),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      onPressed: () async {
+        await endWorkout();
+      },
+      child: Text(
+        '운동 종료',
         style: TextStyle(
           fontSize: 24.0,
           fontWeight: FontWeight.w600,
@@ -228,28 +375,20 @@ class _PageScreenState extends ConsumerState<PageScreen> {
   }
 
   // use Func
-  Future<void> sendSetting() async {
-    // 예시 입력 Value
-    const setCount = 15;
-    const repsCount = 5;
-    const weight = 20;
-    bool support = true;
-
+  Future<void> sendWorkoutSetting() async {
     // 예시 입력 바이트
-    final headBytes = [0x5B, 0x01, 0x05];
-    final tailBytes = [0x00, 0x5D];
+    final headBytes = [0x5B, 0xFD, 0x04];
+    final tailBytes = [0x5D];
 
-    final weightBytes = _getIntBytes(weight * 10);
-    final respByte = repsCount & 0xFF;
-    final setByte = setCount & 0xFF;
-    final supportByte = support ? 0x01 : 0x00;
+    final modeByte = modeNum & 0xFF;
+    final leftWeightByte = leftWeight & 0xFF;
+    final rightWeightByte = rightWeight & 0xFF;
 
     writeData = [
       ...headBytes,
-      ...weightBytes,
-      respByte,
-      setByte,
-      supportByte,
+      modeByte,
+      leftWeightByte,
+      rightWeightByte,
       ...tailBytes,
     ];
 
@@ -258,11 +397,46 @@ class _PageScreenState extends ConsumerState<PageScreen> {
     await sendData(writeData);
   }
 
+  Future<void> startWorkout() async {
+    // 예시 입력 Value
+
+    // 예시 입력 바이트
+    final headBytes = [0x5B, 0xFC, 0x03, 0x00];
+    final tailBytes = [0x5D];
+
+    writeData = [
+      ...headBytes,
+      ...tailBytes,
+    ];
+
+    await sendData(writeData);
+  }
+
+  Future<void> endWorkout() async {
+    // 예시 입력 바이트
+    final headBytes = [0x5B, 0xFE, 0x05];
+    final tailBytes = [0x5D];
+
+    writeData = [
+      ...headBytes,
+      ...tailBytes,
+    ];
+
+    await sendData(writeData);
+  }
+
   // use Func
   Future<void> onReceivedData(List<int> bytes) async {
     if (bytes.length < 3) return;
     //
-    print("기기로 부터 받은 데이터 ${bytes}");
+    // print("기기로 부터 받은 데이터 ${bytes}");
+
+    print("왼쪽 위치 ${((((bytes[1] << 8) + bytes[2])) - 32768) / 10}");
+    print("왼쪽 속도 ${((((bytes[3] << 8) + bytes[4])) - 32768) / 10}");
+    print("오른쪽 위치 ${((((bytes[5] << 8) + bytes[6])) - 32768) / 10}");
+    print("오른쪽 속도 ${((((bytes[7] << 8) + bytes[8])) - 32768) / 10}");
+    // bytes[2];
+
     setState(() {
       readData = bytes;
     });
