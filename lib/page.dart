@@ -218,7 +218,7 @@ class _PageScreenState extends ConsumerState<PageScreen> {
                   // });
 
                   // final sub = bleChar!.onValueReceived.listen((value) {
-                  //   print("onValueReceived");
+                  //   print("onValueReceived");  
                   //   print(value);
                   // });
 
