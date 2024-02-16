@@ -211,11 +211,16 @@ class _PageScreenState extends ConsumerState<PageScreen> {
 
                   _setNotification(readCharacteristics);
 
-                  FlutterBluePlus.events.onCharacteristicReceived
-                      .listen((event) {
-                    print("onCharacteristicReceived");
-                    print(event.value);
-                  });
+                  // FlutterBluePlus.events.onCharacteristicReceived
+                  //     .listen((event) {
+                  //   print("onCharacteristicReceived");
+                  //   print(event.value);
+                  // });
+
+                  // final sub = bleChar!.onValueReceived.listen((value) {
+                  //   print("onValueReceived");
+                  //   print(value);
+                  // });
 
                   showDialog(
                       context: context,
