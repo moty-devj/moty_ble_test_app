@@ -211,23 +211,18 @@ class _PageScreenState extends ConsumerState<PageScreen> {
 
                   _setNotification(readCharacteristics);
 
-                  // FlutterBluePlus.events.onCharacteristicReceived
-                  //     .listen((event) {
-                  //   print("onCharacteristicReceived");
-                  //   print(event.value);
-                  // });
-
-                  // final sub = bleChar!.onValueReceived.listen((value) {
-                  //   print("onValueReceived");
-                  //   print(value);
-                  // });
+                  FlutterBluePlus.events.onCharacteristicReceived
+                      .listen((event) {
+                    print("onCharacteristicReceived");
+                    print(event.value);
+                  });
 
                   showDialog(
                       context: context,
                       builder: (context) {
                         return Column(
                           children: [
-                            Text("연결되었습니다.",
+                            const Text("연결되었습니다.",
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w600,
@@ -440,16 +435,6 @@ class _PageScreenState extends ConsumerState<PageScreen> {
     setState(() {
       readData = bytes;
     });
-
-    // 기기로 부터 받은 상태 메시지 발생
-    // if (bytes[0] == 0x5B &&
-    //     bytes[1] == 0x02 &&
-    //     bytes[2] == 0x02 &&
-    //     bytes.length >= 5) {
-    //   var setCnt = bytes[3]; //기기로부터 받은 셋트 수(예시)
-    //   var respsCnt = bytes[4]; //기기로부터 받은 반복 횟수(예시)
-    //   print("기기로 부터 받은 데이터 ${bytes}");
-    // }
   }
 
   //    ----------- 위 까지 -----------
